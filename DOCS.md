@@ -550,6 +550,8 @@ Configure the BE with:
 
 ### Phase 7: Connect the FE
 
+The Step 4 connectivity checkpoint is implemented before the assistant-ui runtime. The React FE reads `VITE_BE_BASE_URL`, calls `GET /api/v1/health` and `GET /api/v1/health/mock-llm`, and presents independent loading, online, and offline states with manual retry. The browser never calls MockLLM directly; the second health endpoint verifies the FE -> BE -> MockLLM path.
+
 1. Install assistant-ui, `@assistant-ui/react-ag-ui`, and `@ag-ui/client`.
 2. Point a stable `HttpAgent` at `/api/v1/runs`.
 3. Create the runtime with `useAgUiRuntime`.

@@ -5,6 +5,7 @@ import { nxReadySignal } from '@nx/vite/plugins/nx-ready-signal.plugin';
 
 export default defineConfig(() => ({
   root: import.meta.dirname,
+  envDir: '../..',
   cacheDir: '../../node_modules/.vite/apps/fe',
   server: {
     port: 4200,
