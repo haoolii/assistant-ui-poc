@@ -15,6 +15,13 @@ export class ResponsesController {
     const context = this.responsesService.createContext(request);
 
     if (!request.stream) {
+      if (context.shouldFail) {
+        response
+          .status(500)
+          .json(this.responsesService.createFailedResponse(context));
+        return;
+      }
+
       response
         .status(200)
         .json(this.responsesService.createCompletedResponse(context));
@@ -28,13 +35,21 @@ export class ResponsesController {
     response.setHeader('X-Accel-Buffering', 'no');
     response.flushHeaders();
 
-    for await (const event of this.responsesService.stream(context)) {
-      if (response.destroyed) {
+    const abortController = new AbortController();
+    response.once('close', () => abortController.abort());
+
+    for await (const event of this.responsesService.stream(
+      context,
+      abortController.signal,
+    )) {
+      if (response.destroyed || response.writableEnded) {
         return;
       }
       response.write(`data: ${JSON.stringify(event)}\n\n`);
     }
 
-    response.end();
+    if (!response.destroyed && !response.writableEnded) {
+      response.end();
+    }
   }
 }

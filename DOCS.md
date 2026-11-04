@@ -333,6 +333,8 @@ Example request:
 
 Unsupported fields must either be explicitly ignored or rejected with `400 Bad Request`. `DOCS.md` must state that MockLLM is only a compatible subset.
 
+`temperature` is accepted for client compatibility but does not alter the fixed mock response pool. `max_output_tokens` is approximated as a maximum word count rather than using a model tokenizer. Usage metadata applies the same word-count approximation to all input message content and generated output.
+
 ### 5.1 Streaming Events
 
 Minimum event sequence:
@@ -355,7 +357,8 @@ Mock behavior:
 - Split the response into multiple text deltas.
 - Add a small random delay between deltas.
 - Stop generation when the client aborts the connection.
-- Support deterministic triggers such as `mock:error` for manually checking failure handling.
+- When the latest `user` message contains `mock:slow`, delay each text delta by a bounded 200-300 ms.
+- When the latest `user` message contains `mock:error`, return an HTTP `500` failed response for non-streaming requests. For streaming requests, emit `error`, then `response.failed`, and close the stream.
 - Remain stateless and never store chat rooms or messages.
 
 ### 5.2 Current Implementation Checkpoint
@@ -366,6 +369,8 @@ The MockLLM application currently implements:
 - Request validation for `model`, `input`, `stream`, `temperature`, and `max_output_tokens`.
 - A random fixed-response pool with delayed text chunks.
 - `response.created`, `response.output_item.added`, `response.content_part.added`, `response.output_text.delta`, `response.output_text.done`, `response.output_item.done`, and `response.completed` events.
+- Deterministic `mock:error` failure and bounded `mock:slow` streaming simulations based on the latest user message.
+- Word-based `max_output_tokens` truncation with matching input, output, and total usage metadata.
 - Connection-aware streaming that stops writing after the client disconnects.
 
 ## 6. LLM Provider Abstraction
