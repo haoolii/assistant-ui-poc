@@ -237,9 +237,14 @@ export class RunService {
       role: 'assistant',
     });
 
+    const roomSignal = this.store.getRoomSignal(run.chatRoomId);
     try {
       const providerAbort = new AbortController();
-      const providerSignal = AbortSignal.any([signal, providerAbort.signal]);
+      const providerSignal = AbortSignal.any(
+        roomSignal
+          ? [signal, providerAbort.signal, roomSignal]
+          : [signal, AbortSignal.abort()],
+      );
       for await (const event of this.llmProvider.streamResponse(
         { messages: context, model: run.model },
         providerSignal,
@@ -322,6 +327,16 @@ export class RunService {
     } catch (error) {
       if (signal.aborted) {
         this.cancel(run, assistant, output, providerMessageId);
+        return;
+      }
+
+      if (!this.store.getChatRoom(run.chatRoomId)) {
+        this.send(response, {
+          type: EventType.RUN_ERROR,
+          code: 'chat_room_deleted',
+          message: 'The chat room was deleted.',
+        });
+        response.end();
         return;
       }
 

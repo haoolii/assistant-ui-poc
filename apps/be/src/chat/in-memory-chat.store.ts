@@ -17,6 +17,7 @@ import type {
 @Injectable()
 export class InMemoryChatStore implements ChatStore {
   private readonly chatRooms = new Map<string, ChatRoom>();
+  private readonly roomControllers = new Map<string, AbortController>();
   private readonly messages = new Map<string, Message>();
   private readonly runs = new Map<string, Run>();
   private readonly issuedCursors = new Set<string>();
@@ -31,6 +32,7 @@ export class InMemoryChatStore implements ChatStore {
       updatedAt: now,
     };
     this.chatRooms.set(room.id, room);
+    this.roomControllers.set(room.id, new AbortController());
     return room;
   }
 
@@ -45,6 +47,10 @@ export class InMemoryChatStore implements ChatStore {
 
   getChatRoom(chatRoomId: string): ChatRoom | undefined {
     return this.chatRooms.get(chatRoomId);
+  }
+
+  getRoomSignal(chatRoomId: string): AbortSignal | undefined {
+    return this.roomControllers.get(chatRoomId)?.signal;
   }
 
   updateChatRoom(
@@ -65,6 +71,8 @@ export class InMemoryChatStore implements ChatStore {
 
   deleteChatRoom(chatRoomId: string): boolean {
     if (!this.chatRooms.delete(chatRoomId)) return false;
+    this.roomControllers.get(chatRoomId)?.abort();
+    this.roomControllers.delete(chatRoomId);
 
     for (const [id, message] of this.messages) {
       if (message.chatRoomId === chatRoomId) this.messages.delete(id);
@@ -174,15 +182,17 @@ export class InMemoryChatStore implements ChatStore {
     timestampKey: K,
     direction: 'ascending' | 'descending',
   ): Page<T> {
-    const cursor = input.cursor
-      ? this.decodeCursor(input.cursor, kind)
-      : undefined;
+    const cursor =
+      input.cursor !== undefined
+        ? this.decodeCursor(input.cursor, kind)
+        : undefined;
     const remaining = cursor
       ? items.filter((item) => {
           const comparison = item[timestampKey].localeCompare(cursor.timestamp);
+          const idComparison = item.id.localeCompare(cursor.id);
           return direction === 'ascending'
-            ? comparison > 0 || (comparison === 0 && item.id > cursor.id)
-            : comparison < 0 || (comparison === 0 && item.id < cursor.id);
+            ? comparison > 0 || (comparison === 0 && idComparison > 0)
+            : comparison < 0 || (comparison === 0 && idComparison < 0);
         })
       : items;
     const page = remaining.slice(0, input.limit);

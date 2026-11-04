@@ -20,6 +20,7 @@ export interface ChatStore {
   createChatRoom(): ChatRoom;
   listChatRooms(input: PageInput): Page<ChatRoom>;
   getChatRoom(chatRoomId: string): ChatRoom | undefined;
+  getRoomSignal(chatRoomId: string): AbortSignal | undefined;
   updateChatRoom(
     chatRoomId: string,
     patch: UpdateChatRoom,
