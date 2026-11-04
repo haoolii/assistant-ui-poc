@@ -358,6 +358,16 @@ Mock behavior:
 - Support deterministic triggers such as `mock:error` for manually checking failure handling.
 - Remain stateless and never store chat rooms or messages.
 
+### 5.2 Current Implementation Checkpoint
+
+The MockLLM application currently implements:
+
+- `POST /v1/responses` with JSON and `text/event-stream` responses.
+- Request validation for `model`, `input`, `stream`, `temperature`, and `max_output_tokens`.
+- A random fixed-response pool with delayed text chunks.
+- `response.created`, `response.output_item.added`, `response.content_part.added`, `response.output_text.delta`, `response.output_text.done`, `response.output_item.done`, and `response.completed` events.
+- Connection-aware streaming that stops writing after the client disconnects.
+
 ## 6. LLM Provider Abstraction
 
 The BE must not expose OpenAI DTOs throughout the domain layer. Define an internal provider interface:
@@ -380,6 +390,8 @@ interface LlmProvider {
 5. Normalizing provider errors and cancellation.
 
 This boundary allows MockLLM to be replaced by OpenAI, Azure OpenAI, OpenRouter, or LiteLLM without changing chat controllers and services.
+
+The BE currently provides `OpenAiCompatibleProvider`, which maps domain messages to `/v1/responses`, parses provider SSE events into `started`, `text-delta`, and `completed` domain events, propagates abort signals, applies a request timeout, and normalizes upstream failures. `GET /api/v1/health/mock-llm` verifies BE-to-MockLLM connectivity.
 
 ## 7. In-Memory State Model
 
