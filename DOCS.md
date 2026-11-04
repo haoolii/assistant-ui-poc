@@ -333,7 +333,7 @@ Example request:
 
 Unsupported fields must either be explicitly ignored or rejected with `400 Bad Request`. `DOCS.md` must state that MockLLM is only a compatible subset.
 
-`temperature` is accepted for client compatibility but does not alter the fixed mock response pool. `max_output_tokens` is approximated as a maximum word count rather than using a model tokenizer. Usage metadata applies the same word-count approximation to all input message content and generated output.
+`temperature` is accepted for client compatibility but does not alter the fixed mock response pool. `max_output_tokens` is approximated as a maximum word count rather than using a model tokenizer. Usage metadata applies the same word-count approximation to all input message content and generated output. If this limit truncates the selected reply, the JSON response has status `incomplete` and `incomplete_details.reason` set to `max_output_tokens`.
 
 ### 5.1 Streaming Events
 
@@ -348,6 +348,8 @@ response.output_text.done
 response.output_item.done
 response.completed
 ```
+
+An untruncated stream ends with `response.completed`. A truncated stream marks the output item and response as `incomplete`, sets `incomplete_details.reason` to `max_output_tokens`, and ends with `response.incomplete` instead.
 
 Errors use `error` and `response.failed` events.
 
@@ -368,9 +370,9 @@ The MockLLM application currently implements:
 - `POST /v1/responses` with JSON and `text/event-stream` responses.
 - Request validation for `model`, `input`, `stream`, `temperature`, and `max_output_tokens`.
 - A random fixed-response pool with delayed text chunks.
-- `response.created`, `response.output_item.added`, `response.content_part.added`, `response.output_text.delta`, `response.output_text.done`, `response.output_item.done`, and `response.completed` events.
+- `response.created`, `response.output_item.added`, `response.content_part.added`, `response.output_text.delta`, `response.output_text.done`, and `response.output_item.done` events, followed by `response.completed` or `response.incomplete` as appropriate.
 - Deterministic `mock:error` failure and bounded `mock:slow` streaming simulations based on the latest user message.
-- Word-based `max_output_tokens` truncation with matching input, output, and total usage metadata.
+- Word-based `max_output_tokens` truncation with incomplete terminal states and matching input, output, and total usage metadata.
 - Connection-aware streaming that stops writing after the client disconnects.
 
 ## 6. LLM Provider Abstraction

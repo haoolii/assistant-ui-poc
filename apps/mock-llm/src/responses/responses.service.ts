@@ -14,6 +14,7 @@ interface ResponseContext {
   createdAt: number;
   model: string;
   text: string;
+  wasTruncated: boolean;
   inputTokens: number;
   maxOutputTokens?: number;
   shouldFail: boolean;
@@ -33,6 +34,10 @@ export class ResponsesService {
       .reverse()
       .find((message) => message.role === 'user')?.content;
     const reply = MOCK_REPLIES[Math.floor(Math.random() * MOCK_REPLIES.length)];
+    const replyWords = this.countWords(reply);
+    const wasTruncated =
+      request.max_output_tokens !== undefined &&
+      request.max_output_tokens < replyWords;
 
     return {
       responseId: `resp_${randomUUID()}`,
@@ -40,6 +45,7 @@ export class ResponsesService {
       createdAt: Math.floor(Date.now() / 1000),
       model: request.model,
       text: this.limitWords(reply, request.max_output_tokens),
+      wasTruncated,
       inputTokens: request.input.reduce(
         (total, message) => total + this.countWords(message.content),
         0,
@@ -50,17 +56,24 @@ export class ResponsesService {
     };
   }
 
-  createCompletedResponse(context: ResponseContext) {
+  createResponse(context: ResponseContext) {
     return {
       id: context.responseId,
       object: 'response',
       created_at: context.createdAt,
-      status: 'completed',
+      status: context.wasTruncated ? 'incomplete' : 'completed',
       error: null,
-      incomplete_details: null,
+      incomplete_details: context.wasTruncated
+        ? { reason: 'max_output_tokens' }
+        : null,
       max_output_tokens: context.maxOutputTokens ?? null,
       model: context.model,
-      output: [this.createMessage(context, 'completed')],
+      output: [
+        this.createMessage(
+          context,
+          context.wasTruncated ? 'incomplete' : 'completed',
+        ),
+      ],
       usage: this.createUsage(context),
     };
   }
@@ -162,18 +175,21 @@ export class ResponsesService {
       type: 'response.output_item.done',
       sequence_number: sequenceNumber++,
       output_index: 0,
-      item: this.createMessage(context, 'completed'),
+      item: this.createMessage(
+        context,
+        context.wasTruncated ? 'incomplete' : 'completed',
+      ),
     };
     yield {
-      type: 'response.completed',
+      type: context.wasTruncated ? 'response.incomplete' : 'response.completed',
       sequence_number: sequenceNumber,
-      response: this.createCompletedResponse(context),
+      response: this.createResponse(context),
     };
   }
 
   private createMessage(
     context: ResponseContext,
-    status: 'in_progress' | 'completed',
+    status: 'in_progress' | 'completed' | 'incomplete',
     content = [
       { type: 'output_text', text: context.text, annotations: [] as object[] },
     ],

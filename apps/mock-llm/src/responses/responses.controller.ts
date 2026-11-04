@@ -22,9 +22,7 @@ export class ResponsesController {
         return;
       }
 
-      response
-        .status(200)
-        .json(this.responsesService.createCompletedResponse(context));
+      response.status(200).json(this.responsesService.createResponse(context));
       return;
     }
 
