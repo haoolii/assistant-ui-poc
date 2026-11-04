@@ -79,11 +79,6 @@ export class RunService {
     const userMessages: Message[] = [];
     incoming.forEach((message, index) => {
       const text = contentToText(message.content);
-      if (!text.trim()) {
-        throw new BadRequestException(
-          `Message ${message.id} must contain non-empty text.`,
-        );
-      }
       const globalExisting = this.store.getMessage(message.id);
       if (globalExisting && globalExisting.chatRoomId !== dto.threadId) {
         throw new ConflictException(
@@ -103,6 +98,11 @@ export class RunService {
           );
         }
         return;
+      }
+      if (!text.trim()) {
+        throw new BadRequestException(
+          `Message ${message.id} must contain non-empty text.`,
+        );
       }
       if (existing && existing.role !== 'user') {
         throw new BadRequestException(
