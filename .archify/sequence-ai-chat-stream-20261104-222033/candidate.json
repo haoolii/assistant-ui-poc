@@ -1,0 +1,465 @@
+{
+  "schema_version": 1,
+  "diagram_type": "sequence",
+  "meta": {
+    "title": "AI Chat POC 詳細 API 與 SSE 呼叫時序",
+    "locale": "zh-TW",
+    "output": ".archify/sequence-ai-chat-stream-20261104-222033/ai-chat-stream.html",
+    "quality_profile": "showcase"
+  },
+  "participants": [
+    {
+      "id": "fe",
+      "type": "frontend",
+      "label": "FE · React",
+      "sublabel": "assistant-ui"
+    },
+    {
+      "id": "roomsApi",
+      "type": "backend",
+      "label": "BE · Rooms",
+      "sublabel": "/chat-rooms"
+    },
+    {
+      "id": "runsApi",
+      "type": "backend",
+      "label": "BE · Runs",
+      "sublabel": "/runs · AG-UI SSE"
+    },
+    {
+      "id": "runService",
+      "type": "backend",
+      "label": "BE · Service",
+      "sublabel": "orchestrator"
+    },
+    {
+      "id": "memory",
+      "type": "backend",
+      "label": "BE · Memory",
+      "sublabel": "process-local Maps"
+    },
+    {
+      "id": "provider",
+      "type": "backend",
+      "label": "BE · Provider",
+      "sublabel": "Responses adapter"
+    },
+    {
+      "id": "mockllm",
+      "type": "external",
+      "label": "MockLLM · API",
+      "sublabel": "/v1/responses"
+    }
+  ],
+  "segments": [
+    {
+      "from": 150,
+      "to": 260,
+      "label": "1. Load history"
+    },
+    {
+      "from": 264,
+      "to": 372,
+      "label": "2. Create room"
+    },
+    {
+      "from": 378,
+      "to": 1128,
+      "label": "3. Run + stream"
+    }
+  ],
+  "messages": [
+    {
+      "id": "list-rooms",
+      "from": "fe",
+      "to": "roomsApi",
+      "y": 164,
+      "label": "GET chat-rooms?limit=20",
+      "variant": "emphasis"
+    },
+    {
+      "id": "list-memory",
+      "from": "roomsApi",
+      "to": "memory",
+      "y": 192,
+      "label": "listChatRooms(cursor, 20)",
+      "variant": "default"
+    },
+    {
+      "id": "empty-page",
+      "from": "memory",
+      "to": "roomsApi",
+      "y": 220,
+      "label": "ChatRoomPage (may be empty)",
+      "variant": "return"
+    },
+    {
+      "id": "rooms-response",
+      "from": "roomsApi",
+      "to": "fe",
+      "y": 248,
+      "label": "200 { chatRooms, nextCursor }",
+      "variant": "return"
+    },
+    {
+      "id": "create-room",
+      "from": "fe",
+      "to": "roomsApi",
+      "y": 276,
+      "label": "POST chat-rooms {}",
+      "variant": "emphasis"
+    },
+    {
+      "id": "create-memory-room",
+      "from": "roomsApi",
+      "to": "memory",
+      "y": 304,
+      "label": "createChatRoom()",
+      "variant": "default"
+    },
+    {
+      "id": "new-room",
+      "from": "memory",
+      "to": "roomsApi",
+      "y": 332,
+      "label": "ChatRoom { id, title: null }",
+      "variant": "return"
+    },
+    {
+      "id": "created-room-response",
+      "from": "roomsApi",
+      "to": "fe",
+      "y": 360,
+      "label": "201 Created + Location + room",
+      "variant": "return"
+    },
+    {
+      "id": "post-run",
+      "from": "fe",
+      "to": "runsApi",
+      "y": 388,
+      "label": "POST /api/v1/runs",
+      "variant": "emphasis"
+    },
+    {
+      "id": "execute-run",
+      "from": "runsApi",
+      "to": "runService",
+      "y": 416,
+      "label": "executeRun(input, abortSignal)",
+      "variant": "default"
+    },
+    {
+      "id": "get-room",
+      "from": "runService",
+      "to": "memory",
+      "y": 444,
+      "label": "getChatRoom(threadId)",
+      "variant": "default"
+    },
+    {
+      "id": "existing-room",
+      "from": "memory",
+      "to": "runService",
+      "y": 472,
+      "label": "ChatRoom",
+      "variant": "return"
+    },
+    {
+      "id": "store-run-input",
+      "from": "runService",
+      "to": "memory",
+      "y": 500,
+      "label": "upsertMessage + createRun",
+      "variant": "default"
+    },
+    {
+      "id": "run-in-progress",
+      "from": "memory",
+      "to": "runService",
+      "y": 528,
+      "label": "Run(in_progress)",
+      "variant": "return"
+    },
+    {
+      "id": "run-started-internal",
+      "from": "runService",
+      "to": "runsApi",
+      "y": 556,
+      "label": "yield RUN_STARTED",
+      "variant": "return"
+    },
+    {
+      "id": "run-started-sse",
+      "from": "runsApi",
+      "to": "fe",
+      "y": 584,
+      "label": "SSE: RUN_STARTED",
+      "variant": "return"
+    },
+    {
+      "id": "open-provider-stream",
+      "from": "runService",
+      "to": "provider",
+      "y": 612,
+      "label": "streamResponse(request, signal)",
+      "variant": "emphasis"
+    },
+    {
+      "id": "post-responses",
+      "from": "provider",
+      "to": "mockllm",
+      "y": 640,
+      "label": "POST /v1/responses",
+      "variant": "emphasis"
+    },
+    {
+      "id": "provider-stream-open",
+      "from": "mockllm",
+      "to": "provider",
+      "y": 668,
+      "label": "200 text/event-stream",
+      "variant": "return"
+    },
+    {
+      "id": "provider-created",
+      "from": "mockllm",
+      "to": "provider",
+      "y": 696,
+      "label": "SSE: response.created",
+      "variant": "dashed"
+    },
+    {
+      "id": "message-start-internal",
+      "from": "runService",
+      "to": "runsApi",
+      "y": 724,
+      "label": "yield TEXT_MESSAGE_START",
+      "variant": "return"
+    },
+    {
+      "id": "message-start-sse",
+      "from": "runsApi",
+      "to": "fe",
+      "y": 752,
+      "label": "SSE: TEXT_MESSAGE_START",
+      "variant": "return"
+    },
+    {
+      "id": "provider-delta",
+      "from": "mockllm",
+      "to": "provider",
+      "y": 780,
+      "label": "SSE: response.output_text.delta",
+      "variant": "dashed"
+    },
+    {
+      "id": "mapped-delta",
+      "from": "provider",
+      "to": "runService",
+      "y": 808,
+      "label": "LlmStreamEvent.textDelta",
+      "variant": "dashed"
+    },
+    {
+      "id": "content-internal",
+      "from": "runService",
+      "to": "runsApi",
+      "y": 836,
+      "label": "yield TEXT_MESSAGE_CONTENT",
+      "variant": "dashed"
+    },
+    {
+      "id": "content-sse",
+      "from": "runsApi",
+      "to": "fe",
+      "y": 864,
+      "label": "SSE: TEXT_MESSAGE_CONTENT",
+      "variant": "dashed"
+    },
+    {
+      "id": "provider-completed",
+      "from": "mockllm",
+      "to": "provider",
+      "y": 892,
+      "label": "SSE: response.completed",
+      "variant": "return"
+    },
+    {
+      "id": "mapped-completed",
+      "from": "provider",
+      "to": "runService",
+      "y": 920,
+      "label": "LlmStreamEvent.completed",
+      "variant": "return"
+    },
+    {
+      "id": "store-completed-output",
+      "from": "runService",
+      "to": "memory",
+      "y": 948,
+      "label": "upsert assistant + updateRun",
+      "variant": "default"
+    },
+    {
+      "id": "completed-in-memory",
+      "from": "memory",
+      "to": "runService",
+      "y": 976,
+      "label": "Message + Run completed",
+      "variant": "return"
+    },
+    {
+      "id": "message-end-internal",
+      "from": "runService",
+      "to": "runsApi",
+      "y": 1004,
+      "label": "yield TEXT_MESSAGE_END",
+      "variant": "return"
+    },
+    {
+      "id": "message-end-sse",
+      "from": "runsApi",
+      "to": "fe",
+      "y": 1032,
+      "label": "SSE: TEXT_MESSAGE_END",
+      "variant": "return"
+    },
+    {
+      "id": "run-finished-internal",
+      "from": "runService",
+      "to": "runsApi",
+      "y": 1060,
+      "label": "yield RUN_FINISHED",
+      "variant": "return"
+    },
+    {
+      "id": "run-finished-sse",
+      "from": "runsApi",
+      "to": "fe",
+      "y": 1088,
+      "label": "SSE: RUN_FINISHED",
+      "variant": "return"
+    },
+    {
+      "id": "close-response",
+      "from": "runsApi",
+      "to": "fe",
+      "y": 1116,
+      "label": "close response body",
+      "variant": "return"
+    }
+  ],
+  "activations": [
+    {
+      "participant": "fe",
+      "from": 160,
+      "to": 1122,
+      "type": "frontend"
+    },
+    {
+      "participant": "roomsApi",
+      "from": 164,
+      "to": 254,
+      "type": "backend"
+    },
+    {
+      "participant": "roomsApi",
+      "from": 276,
+      "to": 366,
+      "type": "backend"
+    },
+    {
+      "participant": "runsApi",
+      "from": 388,
+      "to": 1122,
+      "type": "backend"
+    },
+    {
+      "participant": "runService",
+      "from": 411,
+      "to": 1066,
+      "type": "backend"
+    },
+    {
+      "participant": "memory",
+      "from": 187,
+      "to": 226,
+      "type": "backend"
+    },
+    {
+      "participant": "memory",
+      "from": 299,
+      "to": 338,
+      "type": "backend"
+    },
+    {
+      "participant": "memory",
+      "from": 439,
+      "to": 478,
+      "type": "backend"
+    },
+    {
+      "participant": "memory",
+      "from": 495,
+      "to": 534,
+      "type": "backend"
+    },
+    {
+      "participant": "provider",
+      "from": 607,
+      "to": 926,
+      "type": "backend"
+    },
+    {
+      "participant": "mockllm",
+      "from": 635,
+      "to": 898,
+      "type": "external"
+    },
+    {
+      "participant": "memory",
+      "from": 943,
+      "to": 982,
+      "type": "backend"
+    }
+  ],
+  "cards": [
+    {
+      "dot": "cyan",
+      "title": "FE 範圍",
+      "items": [
+        "FE · React 負責 sidebar、空白主畫面、thread adapter 與 assistant-ui runtime",
+        "首次送出先建立 room，再由固定 HttpAgent 呼叫 POST /api/v1/runs",
+        "FE 只解析 REST 與 AG-UI events，不接觸 provider event 格式"
+      ]
+    },
+    {
+      "dot": "emerald",
+      "title": "BE 範圍",
+      "items": [
+        "所有 BE · 前綴欄位都位於同一個 NestJS BE app",
+        "Rooms/Runs controllers、Run Service、Memory Store 與 Provider adapter 分工但不跨服務",
+        "InMemoryChatStore 使用 Map，BE restart 後 ChatRoom、Message、Run 全部清空"
+      ]
+    },
+    {
+      "dot": "slate",
+      "title": "MockLLM 範圍",
+      "items": [
+        "MockLLM · API 是獨立 NestJS app，只提供 POST /v1/responses",
+        "無狀態、不知道 chat room，也不保存訊息",
+        "BE · Provider 將 response.* events 轉成內部事件，再由 BE · Runs 輸出 AG-UI SSE"
+      ]
+    },
+    {
+      "dot": "rose",
+      "title": "錯誤與取消",
+      "items": [
+        "SSE 前的 validation 或 room not found 使用 HTTP 4xx + RFC 9457",
+        "SSE 後的 provider failure 由 BE 轉為 RUN_ERROR，不送 RUN_FINISHED",
+        "FE disconnect 時 AbortSignal 經 BE 傳至 MockLLM，Run 更新為 cancelled"
+      ]
+    }
+  ]
+}

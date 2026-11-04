@@ -1,0 +1,13 @@
+node_modules/
+dist/
+coverage/
+.nx/
+.worktrees/
+
+.env
+.env.*
+!.env.example
+
+vite.config.*.timestamp*
+vitest.config.*.timestamp*
+.vitest/

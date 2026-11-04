@@ -1,0 +1,36 @@
+{
+  "schemaVersion": 1,
+  "receiptId": "e0497631-e441-44ec-83dd-cfeecd0e7f7d",
+  "status": "current",
+  "command": "deliver",
+  "type": "explainer",
+  "input": "C:\\Users\\unnha\\Documents\\dev\\ai-chat\\.archify\\explainer-ai-chat-flows-20261104-225544\\candidate.archify.md",
+  "output": "C:\\Users\\unnha\\Documents\\dev\\ai-chat\\.archify\\explainer-ai-chat-flows-20261104-225544\\ai-chat-flows.html",
+  "specification": {
+    "sha256": "4fd37c61d3de15b8e000f910535fc72f2c1d1aca2b0119e3071b97d9ac72b0fd",
+    "bytes": 6847
+  },
+  "artifact": {
+    "sha256": "a9c5dda00f91c25b6232b84e56f6fa425bc4433075dddbc711afcb036e803e02",
+    "bytes": 1118320
+  },
+  "explainer": {
+    "preparedSha256": "d394d99d98f22daae2ed51d1ad3f8e6d437e0cd2797955509593579f56199ba2",
+    "dependencies": [
+      {
+        "kind": "diagram-spec",
+        "id": "first-run-flow",
+        "inline": true,
+        "sha256": "a7f1b7b166ec4a3db65a589022f94729d86d8f4b3455dba4f965b25ac8f3eae7",
+        "bytes": 5487
+      },
+      {
+        "kind": "diagram-spec",
+        "id": "continued-run-flow",
+        "inline": true,
+        "sha256": "8a4f33219eb04eeb8dbdedc140a58cf12b77e26a26dfd1676dd88a50115904f6",
+        "bytes": 4335
+      }
+    ]
+  }
+}

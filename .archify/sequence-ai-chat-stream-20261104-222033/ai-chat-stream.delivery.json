@@ -1,0 +1,17 @@
+{
+  "schemaVersion": 1,
+  "receiptId": "4134073b-3446-4118-8b1e-509386771bca",
+  "status": "current",
+  "command": "deliver",
+  "type": "sequence",
+  "input": "C:\\Users\\unnha\\Documents\\dev\\ai-chat\\.archify\\sequence-ai-chat-stream-20261104-222033\\candidate.json",
+  "output": "C:\\Users\\unnha\\Documents\\dev\\ai-chat\\.archify\\sequence-ai-chat-stream-20261104-222033\\ai-chat-stream.html",
+  "specification": {
+    "sha256": "64413e6051473426457342cdfee46190350494094441ed3b9a99fe491ad3f54e",
+    "bytes": 10337
+  },
+  "artifact": {
+    "sha256": "867ec8dc2a4272457af4a7cee4fa9e257880daea64f7101e7bfa545fc8415666",
+    "bytes": 861584
+  }
+}

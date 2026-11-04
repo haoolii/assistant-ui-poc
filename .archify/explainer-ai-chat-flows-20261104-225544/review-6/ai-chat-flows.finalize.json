@@ -1,0 +1,491 @@
+{
+  "schemaVersion": 1,
+  "ok": true,
+  "command": "finalize",
+  "status": "pass",
+  "type": "explainer",
+  "quality": "showcase",
+  "startedAt": "2026-11-04T15:16:51.632Z",
+  "specification": {
+    "path": "C:\\Users\\unnha\\Documents\\dev\\ai-chat\\.archify\\explainer-ai-chat-flows-20261104-225544\\candidate.archify.md",
+    "sha256": "b1d881586e662bec098766302b7dfbec9fe92a2c9bcb3c9530de5bf45347253f",
+    "bytes": 4042
+  },
+  "artifact": {
+    "path": "C:\\Users\\unnha\\Documents\\dev\\ai-chat\\.archify\\explainer-ai-chat-flows-20261104-225544\\ai-chat-flows.html",
+    "sha256": "2565b59539f9f2b4361e6afa95f164a517ecb8b986a9177e8e31e0f948d2db77",
+    "bytes": 1008920
+  },
+  "stages": {
+    "browser-check": {
+      "status": "not-run",
+      "execution": "not-requested"
+    },
+    "validate": {
+      "status": "pass",
+      "exitCode": 0,
+      "durationMs": null,
+      "execution": "embedded-in-deliver",
+      "command": [
+        "C:\\Users\\unnha\\.nvm\\versions\\node\\v24.15.0\\bin\\node.exe",
+        "C:\\Users\\unnha\\.agents\\skills\\archify\\bin\\archify.mjs",
+        "deliver",
+        "explainer",
+        "C:\\Users\\unnha\\Documents\\dev\\ai-chat\\.archify\\explainer-ai-chat-flows-20261104-225544\\candidate.archify.md",
+        "C:\\Users\\unnha\\Documents\\dev\\ai-chat\\.archify\\explainer-ai-chat-flows-20261104-225544\\ai-chat-flows.html",
+        "--quality",
+        "showcase",
+        "--json"
+      ],
+      "receipt": {
+        "schemaVersion": 1,
+        "ok": true,
+        "command": "validate",
+        "specification": {
+          "sha256": "b1d881586e662bec098766302b7dfbec9fe92a2c9bcb3c9530de5bf45347253f",
+          "bytes": 4042
+        },
+        "validation": {
+          "checksPassed": 4,
+          "checkCount": 4,
+          "compositionProfile": "showcase",
+          "compositionStatus": "pass",
+          "errors": 0,
+          "warnings": 0
+        }
+      }
+    },
+    "deliver": {
+      "status": "pass",
+      "exitCode": 0,
+      "durationMs": 2328,
+      "command": [
+        "C:\\Users\\unnha\\.nvm\\versions\\node\\v24.15.0\\bin\\node.exe",
+        "C:\\Users\\unnha\\.agents\\skills\\archify\\bin\\archify.mjs",
+        "deliver",
+        "explainer",
+        "C:\\Users\\unnha\\Documents\\dev\\ai-chat\\.archify\\explainer-ai-chat-flows-20261104-225544\\candidate.archify.md",
+        "C:\\Users\\unnha\\Documents\\dev\\ai-chat\\.archify\\explainer-ai-chat-flows-20261104-225544\\ai-chat-flows.html",
+        "--quality",
+        "showcase",
+        "--json"
+      ],
+      "receipt": {
+        "schemaVersion": 1,
+        "receiptId": "1ddfa181-bc5c-443a-a2fb-847aac26f24e",
+        "ok": true,
+        "command": "deliver",
+        "type": "explainer",
+        "input": "C:\\Users\\unnha\\Documents\\dev\\ai-chat\\.archify\\explainer-ai-chat-flows-20261104-225544\\candidate.archify.md",
+        "output": "C:\\Users\\unnha\\Documents\\dev\\ai-chat\\.archify\\explainer-ai-chat-flows-20261104-225544\\ai-chat-flows.html",
+        "explainer": {
+          "preparedSha256": "42c03d7f1ed28cca6b47a1de3e2edbbd5016e4a6302daf6e166d3f49a255b741",
+          "dependencies": [
+            {
+              "kind": "diagram-spec",
+              "id": "first-run-flow",
+              "inline": true,
+              "sha256": "1b48673eda86ebafdb0cef283cb5d6aba0b14c4491de995c80b0637e71caef29",
+              "bytes": 3232
+            },
+            {
+              "kind": "diagram-spec",
+              "id": "continued-run-flow",
+              "inline": true,
+              "sha256": "5c0427ee4e2cecefde5529826ff7b739e0c3e9f90989a706befea89da84eb8dd",
+              "bytes": 2910
+            }
+          ]
+        },
+        "specification": {
+          "sha256": "b1d881586e662bec098766302b7dfbec9fe92a2c9bcb3c9530de5bf45347253f",
+          "bytes": 4042
+        },
+        "artifact": {
+          "sha256": "2565b59539f9f2b4361e6afa95f164a517ecb8b986a9177e8e31e0f948d2db77",
+          "bytes": 1008920
+        },
+        "validation": {
+          "checksPassed": 4,
+          "checkCount": 4,
+          "compositionProfile": "showcase",
+          "compositionStatus": "pass",
+          "errors": 0,
+          "warnings": 0
+        },
+        "update": {
+          "status": "unavailable",
+          "installedVersion": null,
+          "availableVersion": null,
+          "releaseNotes": null,
+          "checkedAt": null,
+          "source": null,
+          "noticeRequired": false,
+          "noticeText": null,
+          "reason": "disabled"
+        }
+      }
+    },
+    "check": {
+      "status": "pass",
+      "exitCode": 0,
+      "durationMs": 1469,
+      "command": [
+        "C:\\Users\\unnha\\.nvm\\versions\\node\\v24.15.0\\bin\\node.exe",
+        "C:\\Users\\unnha\\.agents\\skills\\archify\\bin\\archify.mjs",
+        "check",
+        "C:\\Users\\unnha\\Documents\\dev\\ai-chat\\.archify\\explainer-ai-chat-flows-20261104-225544\\ai-chat-flows.html",
+        "--require-provenance"
+      ],
+      "receipt": {
+        "ok": true,
+        "file": "C:\\Users\\unnha\\Documents\\dev\\ai-chat\\.archify\\explainer-ai-chat-flows-20261104-225544\\ai-chat-flows.html",
+        "family": "explainer",
+        "artifact": {
+          "sha256": "2565b59539f9f2b4361e6afa95f164a517ecb8b986a9177e8e31e0f948d2db77",
+          "bytes": 1008920
+        },
+        "checks": [
+          {
+            "name": "explainer_structure",
+            "ok": true,
+            "details": [
+              "41 unique DOM IDs"
+            ]
+          },
+          {
+            "name": "explainer_payload_identity",
+            "ok": true,
+            "details": []
+          },
+          {
+            "name": "explainer_dependencies",
+            "ok": true,
+            "details": [
+              "2 frozen dependencies"
+            ]
+          },
+          {
+            "name": "explainer_native_diagrams",
+            "ok": true,
+            "details": [
+              "first-run-flow: pass",
+              "continued-run-flow: pass"
+            ]
+          }
+        ],
+        "composition": {
+          "schemaVersion": 1,
+          "profile": "showcase",
+          "status": "pass",
+          "summary": {
+            "errors": 0,
+            "warnings": 0
+          },
+          "issues": [],
+          "nativeDiagrams": [
+            {
+              "id": "first-run-flow",
+              "receipt": {
+                "ok": true,
+                "file": "C:\\Users\\unnha\\AppData\\Local\\Temp\\archify-explainer-check-F1jVsh\\child.html",
+                "artifact": {
+                  "sha256": "ce5df904176fed3e91c602c51efcf9ae37c2836dd29fec4b509172fd1a0de1b2",
+                  "bytes": 843907
+                },
+                "checks": [
+                  {
+                    "name": "single_svg",
+                    "ok": true,
+                    "details": [
+                      "found 1 <svg> block(s)"
+                    ]
+                  },
+                  {
+                    "name": "finite_svg",
+                    "ok": true,
+                    "details": []
+                  },
+                  {
+                    "name": "orthogonal_arrows",
+                    "ok": true,
+                    "details": []
+                  },
+                  {
+                    "name": "label_route_clearance",
+                    "ok": true,
+                    "details": []
+                  },
+                  {
+                    "name": "relationship_crossings",
+                    "ok": true,
+                    "details": []
+                  },
+                  {
+                    "name": "relationship_corridors",
+                    "ok": true,
+                    "details": []
+                  },
+                  {
+                    "name": "container_border_runs",
+                    "ok": true,
+                    "details": []
+                  },
+                  {
+                    "name": "route_rhythm",
+                    "ok": true,
+                    "details": []
+                  },
+                  {
+                    "name": "legend_clearance",
+                    "ok": true,
+                    "details": []
+                  }
+                ],
+                "composition": {
+                  "schemaVersion": 1,
+                  "profile": "showcase",
+                  "status": "pass",
+                  "summary": {
+                    "errors": 0,
+                    "warnings": 0
+                  },
+                  "metrics": {
+                    "properCrossings": 0,
+                    "resolvedCrossovers": 0,
+                    "ambiguousCorridors": 0,
+                    "arrowheadCollisions": 0,
+                    "containerBorderRuns": 0,
+                    "labelRouteClearanceIssues": 0,
+                    "labelCanvasOverflowIssues": 0,
+                    "minLabelRouteClearance": 28,
+                    "desktopReadabilityIssues": 0,
+                    "viewportHeightIssues": 0,
+                    "minProjectedNodeTextPx": 9.978540772532188,
+                    "maxBends": 0,
+                    "routesOverSuggestedBends": 0,
+                    "maxStretch": 1,
+                    "routesOverSuggestedStretch": 0,
+                    "minSegmentPx": 129.8,
+                    "minInteriorSegmentPx": null,
+                    "shortSegmentCount": 0,
+                    "shortEndpointSegmentCount": 0,
+                    "shortInteriorSegmentCount": 0,
+                    "microSegmentCount": 0
+                  },
+                  "suggestedLimits": {
+                    "bendsPerRelationship": 2,
+                    "stretch": 1.35,
+                    "segmentPx": 16,
+                    "microSegmentPx": 8
+                  },
+                  "routeReview": {
+                    "crossings": [],
+                    "detours": []
+                  },
+                  "leadingSpace": {
+                    "measured": false,
+                    "reviewSuggested": false
+                  },
+                  "sequenceColumnSpace": {
+                    "measured": true,
+                    "columnFit": "spread",
+                    "participantCount": 6,
+                    "occupiedRight": 892,
+                    "viewBoxLeft": 0,
+                    "canvasWidth": 932,
+                    "emptyRightPx": 40,
+                    "emptyRightRatio": 0.043,
+                    "typicalParticipantWidth": 111,
+                    "reviewSuggested": false
+                  },
+                  "desktopReadability": {
+                    "budgetBasis": "legacy-930",
+                    "readerContract": "declared-wide-v1",
+                    "availableDiagramWidth": 930,
+                    "actualBudgetPx": 930,
+                    "limit": "legacy",
+                    "requestedTargetPx": null,
+                    "requestedTargetMet": null,
+                    "hardFloorPx": 6,
+                    "hardFloorMet": true,
+                    "minimumOwner": {
+                      "kind": "node",
+                      "id": "provider"
+                    },
+                    "minimumSourceTextPx": 10,
+                    "minimumProjectedTextPx": 9.978540772532188,
+                    "semanticTextCount": 29
+                  },
+                  "issues": []
+                }
+              }
+            },
+            {
+              "id": "continued-run-flow",
+              "receipt": {
+                "ok": true,
+                "file": "C:\\Users\\unnha\\AppData\\Local\\Temp\\archify-explainer-check-JI1MZk\\child.html",
+                "artifact": {
+                  "sha256": "ef9f7746ca0f85519dd12905383b75daef713d25881ddec1dddc21f205d10d73",
+                  "bytes": 840610
+                },
+                "checks": [
+                  {
+                    "name": "single_svg",
+                    "ok": true,
+                    "details": [
+                      "found 1 <svg> block(s)"
+                    ]
+                  },
+                  {
+                    "name": "finite_svg",
+                    "ok": true,
+                    "details": []
+                  },
+                  {
+                    "name": "orthogonal_arrows",
+                    "ok": true,
+                    "details": []
+                  },
+                  {
+                    "name": "label_route_clearance",
+                    "ok": true,
+                    "details": []
+                  },
+                  {
+                    "name": "relationship_crossings",
+                    "ok": true,
+                    "details": []
+                  },
+                  {
+                    "name": "relationship_corridors",
+                    "ok": true,
+                    "details": []
+                  },
+                  {
+                    "name": "container_border_runs",
+                    "ok": true,
+                    "details": []
+                  },
+                  {
+                    "name": "route_rhythm",
+                    "ok": true,
+                    "details": []
+                  },
+                  {
+                    "name": "legend_clearance",
+                    "ok": true,
+                    "details": []
+                  }
+                ],
+                "composition": {
+                  "schemaVersion": 1,
+                  "profile": "showcase",
+                  "status": "pass",
+                  "summary": {
+                    "errors": 0,
+                    "warnings": 0
+                  },
+                  "metrics": {
+                    "properCrossings": 0,
+                    "resolvedCrossovers": 0,
+                    "ambiguousCorridors": 0,
+                    "arrowheadCollisions": 0,
+                    "containerBorderRuns": 0,
+                    "labelRouteClearanceIssues": 0,
+                    "labelCanvasOverflowIssues": 0,
+                    "minLabelRouteClearance": 28,
+                    "desktopReadabilityIssues": 0,
+                    "viewportHeightIssues": 0,
+                    "minProjectedNodeTextPx": 9.978540772532188,
+                    "maxBends": 0,
+                    "routesOverSuggestedBends": 0,
+                    "maxStretch": 1,
+                    "routesOverSuggestedStretch": 0,
+                    "minSegmentPx": 129.8,
+                    "minInteriorSegmentPx": null,
+                    "shortSegmentCount": 0,
+                    "shortEndpointSegmentCount": 0,
+                    "shortInteriorSegmentCount": 0,
+                    "microSegmentCount": 0
+                  },
+                  "suggestedLimits": {
+                    "bendsPerRelationship": 2,
+                    "stretch": 1.35,
+                    "segmentPx": 16,
+                    "microSegmentPx": 8
+                  },
+                  "routeReview": {
+                    "crossings": [],
+                    "detours": []
+                  },
+                  "leadingSpace": {
+                    "measured": false,
+                    "reviewSuggested": false
+                  },
+                  "sequenceColumnSpace": {
+                    "measured": true,
+                    "columnFit": "spread",
+                    "participantCount": 6,
+                    "occupiedRight": 932.3,
+                    "viewBoxLeft": 0,
+                    "canvasWidth": 932,
+                    "emptyRightPx": 0,
+                    "emptyRightRatio": 0,
+                    "typicalParticipantWidth": 111,
+                    "reviewSuggested": false
+                  },
+                  "desktopReadability": {
+                    "budgetBasis": "legacy-930",
+                    "readerContract": "declared-wide-v1",
+                    "availableDiagramWidth": 930,
+                    "actualBudgetPx": 930,
+                    "limit": "legacy",
+                    "requestedTargetPx": null,
+                    "requestedTargetMet": null,
+                    "hardFloorPx": 6,
+                    "hardFloorMet": true,
+                    "minimumOwner": {
+                      "kind": "node",
+                      "id": "provider2"
+                    },
+                    "minimumSourceTextPx": 10,
+                    "minimumProjectedTextPx": 9.978540772532188,
+                    "semanticTextCount": 24
+                  },
+                  "issues": []
+                }
+              }
+            }
+          ]
+        },
+        "diagnostics": [],
+        "provenance": "current",
+        "deliveryReceiptId": "1ddfa181-bc5c-443a-a2fb-847aac26f24e"
+      }
+    }
+  },
+  "browserCheck": {
+    "requested": false,
+    "ran": false
+  },
+  "diagnostics": [],
+  "evidence": {
+    "receipt": "C:\\Users\\unnha\\Documents\\dev\\ai-chat\\.archify\\explainer-ai-chat-flows-20261104-225544\\review-6\\ai-chat-flows.finalize.json",
+    "summaryReceipt": "C:\\Users\\unnha\\Documents\\dev\\ai-chat\\.archify\\explainer-ai-chat-flows-20261104-225544\\review-6\\ai-chat-flows.finalize-summary.json"
+  },
+  "visualReview": "not-requested",
+  "finishedAt": "2026-11-04T15:16:56.437Z",
+  "durationMs": 4805,
+  "update": {
+    "status": "current",
+    "installedVersion": "3.2.0",
+    "availableVersion": "3.2.0",
+    "releaseNotes": null,
+    "checkedAt": "2026-11-04T14:21:39.582Z",
+    "source": "cache",
+    "noticeRequired": false,
+    "noticeText": null
+  }
+}

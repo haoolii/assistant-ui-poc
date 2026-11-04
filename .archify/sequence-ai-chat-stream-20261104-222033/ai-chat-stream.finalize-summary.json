@@ -1,0 +1,51 @@
+{
+  "schemaVersion": 1,
+  "ok": true,
+  "command": "finalize",
+  "status": "pass",
+  "type": "sequence",
+  "quality": "showcase",
+  "specification": {
+    "path": "C:\\Users\\unnha\\Documents\\dev\\ai-chat\\.archify\\sequence-ai-chat-stream-20261104-222033\\candidate.json",
+    "sha256": "d3e61b054de82d00aa4645f4d417cd939370f7d8b1211199834c55b2843f478d",
+    "bytes": 5497
+  },
+  "artifact": {
+    "path": "C:\\Users\\unnha\\Documents\\dev\\ai-chat\\.archify\\sequence-ai-chat-stream-20261104-222033\\ai-chat-stream.html",
+    "sha256": "2263bf07e0bbcf1cb1ede34d0eab5d9e3a76aba9d14be29bc6a4d481f5315c30",
+    "bytes": 840841
+  },
+  "gates": {
+    "validate": "pass",
+    "deliver": "pass",
+    "check": "pass",
+    "browser-check": "pass"
+  },
+  "diagnostics": [],
+  "diagnosticSummary": {
+    "total": 0,
+    "shown": 0,
+    "truncated": false
+  },
+  "evidence": {
+    "receipt": "C:\\Users\\unnha\\Documents\\dev\\ai-chat\\.archify\\sequence-ai-chat-stream-20261104-222033\\ai-chat-stream.finalize.json",
+    "summaryReceipt": "C:\\Users\\unnha\\Documents\\dev\\ai-chat\\.archify\\sequence-ai-chat-stream-20261104-222033\\ai-chat-stream.finalize-summary.json",
+    "browserCheckReceipt": "C:\\Users\\unnha\\Documents\\dev\\ai-chat\\.archify\\sequence-ai-chat-stream-20261104-222033\\ai-chat-stream.browser-check.json"
+  },
+  "update": {
+    "status": "current",
+    "installedVersion": "3.2.0",
+    "availableVersion": "3.2.0",
+    "releaseNotes": null,
+    "checkedAt": "2026-11-04T14:21:39.582Z",
+    "source": "cache",
+    "noticeRequired": false,
+    "noticeText": null
+  },
+  "visualReview": "not-requested",
+  "durationMs": 6585,
+  "browserCheck": {
+    "requested": true,
+    "ran": true
+  }
+}

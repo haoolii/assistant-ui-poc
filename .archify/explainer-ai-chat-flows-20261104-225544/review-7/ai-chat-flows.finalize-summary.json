@@ -1,0 +1,50 @@
+{
+  "schemaVersion": 1,
+  "ok": true,
+  "command": "finalize",
+  "status": "pass",
+  "type": "explainer",
+  "quality": "showcase",
+  "specification": {
+    "path": "C:\\Users\\unnha\\Documents\\dev\\ai-chat\\.archify\\explainer-ai-chat-flows-20261104-225544\\candidate.archify.md",
+    "sha256": "4fd37c61d3de15b8e000f910535fc72f2c1d1aca2b0119e3071b97d9ac72b0fd",
+    "bytes": 6847
+  },
+  "artifact": {
+    "path": "C:\\Users\\unnha\\Documents\\dev\\ai-chat\\.archify\\explainer-ai-chat-flows-20261104-225544\\ai-chat-flows.html",
+    "sha256": "a9c5dda00f91c25b6232b84e56f6fa425bc4433075dddbc711afcb036e803e02",
+    "bytes": 1118320
+  },
+  "gates": {
+    "validate": "pass",
+    "deliver": "pass",
+    "check": "pass",
+    "browser-check": "not-run"
+  },
+  "diagnostics": [],
+  "diagnosticSummary": {
+    "total": 0,
+    "shown": 0,
+    "truncated": false
+  },
+  "evidence": {
+    "receipt": "C:\\Users\\unnha\\Documents\\dev\\ai-chat\\.archify\\explainer-ai-chat-flows-20261104-225544\\review-7\\ai-chat-flows.finalize.json",
+    "summaryReceipt": "C:\\Users\\unnha\\Documents\\dev\\ai-chat\\.archify\\explainer-ai-chat-flows-20261104-225544\\review-7\\ai-chat-flows.finalize-summary.json"
+  },
+  "update": {
+    "status": "current",
+    "installedVersion": "3.2.0",
+    "availableVersion": "3.2.0",
+    "releaseNotes": null,
+    "checkedAt": "2026-11-04T14:21:39.582Z",
+    "source": "cache",
+    "noticeRequired": false,
+    "noticeText": null
+  },
+  "visualReview": "not-requested",
+  "durationMs": 4589,
+  "browserCheck": {
+    "requested": false,
+    "ran": false
+  }
+}
