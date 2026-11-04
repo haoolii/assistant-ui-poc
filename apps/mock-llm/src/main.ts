@@ -4,14 +4,20 @@
  */
 
 import { Logger } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import { NestFactory } from '@nestjs/core';
+import { configureHttpApi } from 'api-core';
 import { AppModule } from './app/app.module';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
+  const config = app.get(ConfigService);
   const globalPrefix = 'v1';
   app.setGlobalPrefix(globalPrefix);
-  const port = process.env.PORT || 3100;
+  app.enableShutdownHooks();
+  configureHttpApi(app);
+
+  const port = config.getOrThrow<number>('PORT');
   await app.listen(port);
   // Set when Nx waits for this server to be ready
   if (process.env.NX_READY_SIGNAL_SOCKET) {
@@ -26,7 +32,7 @@ async function bootstrap() {
     }
   }
   Logger.log(
-    `🚀 Application is running on: http://localhost:${port}/${globalPrefix}`,
+    `Application is running on: http://localhost:${port}/${globalPrefix}`,
   );
 }
 

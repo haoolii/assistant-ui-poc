@@ -30,11 +30,11 @@ NestJS MockLLM
 
 The protocols must remain separate:
 
-| Scope | Protocol |
-| --- | --- |
-| FE to BE chat streaming | AG-UI 1.0 HTTP + SSE |
-| BE to MockLLM | OpenAI Responses API compatible subset |
-| Chat rooms and history | REST + OpenAPI + RFC 9457 |
+| Scope                   | Protocol                               |
+| ----------------------- | -------------------------------------- |
+| FE to BE chat streaming | AG-UI 1.0 HTTP + SSE                   |
+| BE to MockLLM           | OpenAI Responses API compatible subset |
+| Chat rooms and history  | REST + OpenAPI + RFC 9457              |
 
 The frontend must not consume OpenAI events directly. MockLLM must not emit AG-UI events. The BE converts provider events into AG-UI events.
 
@@ -53,17 +53,17 @@ libs/
 Suggested local ports:
 
 | Application | Port |
-| --- | ---: |
-| FE | 4200 |
-| BE | 3000 |
-| MockLLM | 3100 |
+| ----------- | ---: |
+| FE          | 4200 |
+| BE          | 3000 |
+| MockLLM     | 3100 |
 
 ## 3. BE API Design
 
 ### 3.1 Conventions
 
 - Use `/api/v1` as the API prefix.
-- Publish the API contract with Swagger/OpenAPI.
+- Keep the POC API contract in `DOCS.md`; generated Swagger/OpenAPI is deferred.
 - Validate requests with the NestJS global `ValidationPipe`.
 - Return REST errors as RFC 9457 `application/problem+json` responses.
 - Use cursor pagination for list endpoints.
@@ -159,11 +159,11 @@ MockLLM is stateless. Every `POST /v1/responses` request must therefore contain 
 
 Responsibilities are split as follows:
 
-| Component | Responsibility |
-| --- | --- |
-| FE | Load room history, hydrate the assistant-ui runtime, and send AG-UI `RunAgentInput.messages`. |
-| BE | Own the canonical room history, reconcile messages by ID, order and filter context, inject server-owned instructions, and call MockLLM. |
-| MockLLM | Generate one response from the supplied `input`; never retain rooms or previous turns. |
+| Component | Responsibility                                                                                                                          |
+| --------- | --------------------------------------------------------------------------------------------------------------------------------------- |
+| FE        | Load room history, hydrate the assistant-ui runtime, and send AG-UI `RunAgentInput.messages`.                                           |
+| BE        | Own the canonical room history, reconcile messages by ID, order and filter context, inject server-owned instructions, and call MockLLM. |
+| MockLLM   | Generate one response from the supplied `input`; never retain rooms or previous turns.                                                  |
 
 When an existing room is selected or restored after a browser reload:
 
@@ -331,7 +331,7 @@ Example request:
 }
 ```
 
-Unsupported fields must either be explicitly ignored or rejected with `400 Bad Request`. The Swagger documentation must state that MockLLM is only a compatible subset.
+Unsupported fields must either be explicitly ignored or rejected with `400 Bad Request`. `DOCS.md` must state that MockLLM is only a compatible subset.
 
 ### 5.1 Streaming Events
 
@@ -390,7 +390,7 @@ The store is intentionally non-durable:
 - Browser reloads can restore history while the BE process remains running.
 - Restarting the BE clears every chat room, message, and run.
 - Multiple BE instances do not share state.
-- This limitation is acceptable for the POC and must be documented in Swagger and the README.
+- This limitation is acceptable for the POC and must be documented in `DOCS.md` and the README.
 
 ### 7.1 ChatRoom
 
@@ -438,7 +438,10 @@ interface ChatStore {
   createChatRoom(): ChatRoom;
   listChatRooms(input: { cursor?: string; limit: number }): ChatRoomPage;
   getChatRoom(chatRoomId: string): ChatRoom | undefined;
-  updateChatRoom(chatRoomId: string, patch: UpdateChatRoom): ChatRoom | undefined;
+  updateChatRoom(
+    chatRoomId: string,
+    patch: UpdateChatRoom,
+  ): ChatRoom | undefined;
   deleteChatRoom(chatRoomId: string): boolean;
   listMessages(chatRoomId: string, input: MessagePageInput): MessagePage;
   upsertMessage(message: Message): void;
@@ -454,7 +457,6 @@ Use insertion order plus opaque IDs for the POC cursor. `listChatRooms` sorts by
 Configure the BE with:
 
 - Global DTO validation and transformation.
-- Swagger/OpenAPI documentation.
 - RFC 9457 exception filter.
 - Request ID middleware.
 - Structured logging interceptor.
@@ -479,12 +481,11 @@ Configure the BE with:
 ### Phase 2: Establish API Conventions
 
 1. Enable global validation in both NestJS applications.
-2. Configure Swagger.
-3. Configure the BE `/api/v1` and MockLLM `/v1` prefixes.
-4. Implement the RFC 9457 exception filter.
-5. Add request IDs and structured logging.
-6. Add health endpoints.
-7. Validate environment variables at startup.
+2. Configure the BE `/api/v1` and MockLLM `/v1` prefixes.
+3. Implement the RFC 9457 exception filter.
+4. Add request IDs and structured logging.
+5. Add health endpoints.
+6. Validate environment variables at startup.
 
 ### Phase 3: Implement MockLLM
 
@@ -504,7 +505,7 @@ Configure the BE with:
 3. Implement a singleton `InMemoryChatStore` with process-local `Map` collections.
 4. Implement chat room CRUD.
 5. Implement cursor-paginated chat-room and message history.
-6. Document DTOs, responses, and non-durable behavior in Swagger.
+6. Document DTOs, responses, and non-durable behavior in `DOCS.md`.
 7. Delete a room's messages and runs when the room is deleted.
 
 ### Phase 5: Connect BE to MockLLM
@@ -555,7 +556,7 @@ Configure the BE with:
 
 Avoid building a large unit or E2E test suite for this POC. Perform only the following verification:
 
-1. Operate all REST endpoints through Swagger.
+1. Operate all REST endpoints with curl or an HTTP client.
 2. Call MockLLM with curl and observe multiple deltas.
 3. Confirm the BE converts MockLLM deltas into valid AG-UI events.
 4. Confirm the FE progressively displays the response.
@@ -577,7 +578,6 @@ Include:
 - SSE streaming.
 - Generation cancellation.
 - MockLLM.
-- Swagger.
 - Process-local in-memory chat history.
 
 Defer:
@@ -590,6 +590,7 @@ Defer:
 - SSE resumption.
 - Automatic chat-room titles.
 - Rate limiting.
+- Swagger/OpenAPI generation.
 - Prisma, SQLite, Redis, queues, and PostgreSQL.
 - A large automated test suite.
 
