@@ -400,6 +400,20 @@ This boundary allows MockLLM to be replaced by OpenAI, Azure OpenAI, OpenRouter,
 
 The BE currently provides `OpenAiCompatibleProvider`, which maps domain messages to `/v1/responses`, parses provider SSE events into `started`, `text-delta`, and `completed` domain events, propagates abort signals, applies a request timeout, and normalizes upstream failures. `GET /api/v1/health/mock-llm` verifies BE-to-MockLLM connectivity.
 
+### 6.1 Current BE API Checkpoint
+
+The BE currently implements the complete Phase 6 API:
+
+- Chat-room create, cursor-paginated list, get, update, and cascading delete endpoints.
+- Chronological cursor-paginated message history with content-part arrays at the REST boundary.
+- A singleton `InMemoryChatStore` with process-local `Map` collections for chat rooms, messages, and runs.
+- AG-UI `RunAgentInput` handling and official `@ag-ui/core` event types over HTTP + SSE.
+- Canonical history reconciliation by message ID, server-owned developer instructions, and completed text-turn filtering for provider context.
+- Persisted run and assistant-message lifecycle state, provider message IDs, room activity timestamps, upstream cancellation on client disconnect, and terminal `RUN_FINISHED` or `RUN_ERROR` events.
+- RFC 9457 HTTP errors before streaming begins, including missing-room and malformed-input responses.
+
+This storage is intentionally non-durable. Restarting the BE clears all chat rooms, messages, and runs, and separate BE instances do not share state.
+
 ## 7. In-Memory State Model
 
 The POC does not use Prisma, SQLite, PostgreSQL, or any other database. The BE owns a singleton `InMemoryChatStore` that keeps chat rooms, messages, and runs in process memory.

@@ -19,3 +19,6 @@ MockLLM 只是模擬 LLM 回答，會隨機回應幾個固定內容，不是真�
 6. BE 完整 API
 7. FE 完整串接
 
+Step 6 的 BE API 已完成，包含 chat room CRUD、訊息歷史、AG-UI SSE run endpoint，以及 BE 到 MockLLM 的多輪對話 context 組裝。
+
+目前 chat room、message 與 run 僅儲存在 BE process 內的 memory。重新啟動 BE 會清除所有資料，多個 BE instance 之間也不會共享狀態；此限制符合目前 POC 範圍。
