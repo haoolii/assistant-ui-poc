@@ -9,6 +9,7 @@ import {
   InvalidCursorError,
   type ChatStore,
   type PageInput,
+  type MessagePageInput,
 } from './chat-store';
 import type { ChatRoom, Message, UpdateChatRoom } from './chat.models';
 
@@ -47,7 +48,7 @@ export class ChatService {
 
   listMessages(
     chatRoomId: string,
-    input: PageInput,
+    input: MessagePageInput,
   ): {
     messages: Message[];
     nextCursor: string | null;

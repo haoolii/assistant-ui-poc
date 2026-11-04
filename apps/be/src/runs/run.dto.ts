@@ -46,3 +46,9 @@ export class RunAgentInputDto {
   @IsArray()
   resume?: Record<string, unknown>[];
 }
+
+export class CancelRunDto {
+  @IsString()
+  @IsNotEmpty()
+  threadId!: string;
+}

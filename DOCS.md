@@ -84,9 +84,21 @@ GET    /api/v1/chat-rooms/{chatRoomId}
 PATCH  /api/v1/chat-rooms/{chatRoomId}
 DELETE /api/v1/chat-rooms/{chatRoomId}
 
-GET    /api/v1/chat-rooms/{chatRoomId}/messages?cursor={cursor}&limit=50
+GET    /api/v1/chat-rooms/{chatRoomId}/messages?cursor={cursor}&limit=50&order=asc|desc
 POST   /api/v1/runs
+GET    /api/v1/runs/{runId}
+POST   /api/v1/runs/{runId}/cancel
 ```
+
+Message history accepts `order=asc` or `order=desc`, defaulting to `asc`. Each `nextCursor` must be used with the same order and room as the request that issued it. Descending order returns newest messages first. `GET /api/v1/runs/{runId}` returns the stored run and its status, or `404` when it is not known; a `404` alone does not establish that an in-flight submission cannot still arrive.
+
+`POST /api/v1/runs/{runId}/cancel` accepts `{ "threadId": "room_xxx" }` and is idempotent. For an unknown run it reserves the ID for that room and returns `{ id, chatRoomId, status: "cancelled", started: false }`; a later run submission with that ID is rejected. For an active run it aborts the upstream request and waits for persisted settlement, returning `started: true` with its terminal status. Completed and failed runs are returned unchanged. A run ID associated with another room returns `409`; a missing room returns `404`. If settlement cannot be confirmed, the endpoint returns `503` and the client must retry. Tombstones and runs are process-local and are lost on BE restart; this protocol assumes a single BE instance.
+
+The process retains up to 1,000 unknown-run tombstones for live rooms and returns `503` for additional unknown IDs when full; existing tombstones remain idempotent. On the next run or cancellation request it reclaims tombstones whose rooms were deleted: delayed requests still name the deleted room and are rejected. Room IDs are never reused within a process. No tombstone for a live room expires; deleting its room or restarting the process is required to reclaim capacity. Restart also clears all run history and safety guarantees. Active run IDs remain reserved until their execution has fully settled, including after room deletion.
+
+If cancellation cannot be confirmed, the UI can leave the room quarantined while other rooms remain available. Resolve retries cancellation before permitting that room to be reopened, and restores the draft only when the server confirms the run never started. The quarantine and draft are held only in the current browser session; a page refresh loses them.
+
+Room creation has a 15-second client timeout. Stop marks the pending creation cancelled and waits for its response; a confirmed room is shown in the sidebar, the draft is retained, and no run is started. If the request times out or its response is lost, the result is unknown and the UI offers a manual room-list refresh; a server-created empty room may appear later.
 
 `POST /api/v1/chat-rooms` creates an empty chat room only when the user sends the first message. It does not call MockLLM and does not open an SSE stream.
 
@@ -168,8 +180,8 @@ Responsibilities are split as follows:
 
 When an existing room is selected or restored after a browser reload:
 
-1. The FE calls `GET /api/v1/chat-rooms/{chatRoomId}/messages?limit=50`.
-2. The BE returns the room's messages in chronological order.
+1. The FE calls `GET /api/v1/chat-rooms/{chatRoomId}/messages?limit=50&order=desc` for the newest page and requests older pages on demand using `nextCursor`.
+2. The BE returns messages in descending order for this query; the FE reverses each page for chronological display. The default order remains ascending.
 3. The FE hydrates the assistant-ui runtime with those messages.
 4. When the user sends the next message, assistant-ui includes the visible conversation in `RunAgentInput.messages`.
 
@@ -573,6 +585,8 @@ Configure the BE with:
 15. Mark the run as `cancelled` when the client disconnects.
 
 ### Phase 7: Connect the FE
+
+The FE uses the official `HttpAgent` and `useAgUiRuntime`. Room selection loads the newest history page, and scrolling upward loads older pages. Successful streams use server message IDs without reloading history. After an error or cancellation, the newest page is reconciled before another send; sends remain blocked if reconciliation fails. The runtime sends the visible ordered conversation with canonical server message IDs, while the BE assembles model context from all stored history. Empty assistant entries are not displayed because the runtime omits empty assistant messages from the AG-UI transcript. The sidebar supports renaming and deletion. History remains process-local as described above.
 
 The Step 4 connectivity checkpoint is implemented before the assistant-ui runtime. The React FE reads `VITE_BE_BASE_URL`, calls `GET /api/v1/health` and `GET /api/v1/health/mock-llm`, and presents independent loading, online, and offline states with manual retry. The browser never calls MockLLM directly; the second health endpoint verifies the FE -> BE -> MockLLM path.
 

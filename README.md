@@ -21,4 +21,6 @@ MockLLM 只是模擬 LLM 回答，會隨機回應幾個固定內容，不是真�
 
 Step 6 的 BE API 已完成，包含 chat room CRUD、訊息歷史、AG-UI SSE run endpoint，以及 BE 到 MockLLM 的多輪對話 context 組裝。
 
+Step 7 的 FE 使用 assistant-ui AG-UI runtime 與 HttpAgent 連接 BE。啟動 `npm run dev` 後開啟 `http://localhost:4200`；可建立對話、串流、停止、重新載入歷史、重新命名及刪除對話。`VITE_BE_BASE_URL` 可設定 BE API 位址，預設為 `http://localhost:3000/api/v1`。`mock:slow` 和 `mock:error` 可用來觀察停止與錯誤處理。
+
 目前 chat room、message 與 run 僅儲存在 BE process 內的 memory。重新啟動 BE 會清除所有資料，多個 BE instance 之間也不會共享狀態；此限制符合目前 POC 範圍。

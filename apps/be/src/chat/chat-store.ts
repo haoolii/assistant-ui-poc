@@ -14,6 +14,10 @@ export interface PageInput {
   limit: number;
 }
 
+export interface MessagePageInput extends PageInput {
+  order?: 'asc' | 'desc';
+}
+
 export class InvalidCursorError extends Error {}
 
 export interface ChatStore {
@@ -26,7 +30,7 @@ export interface ChatStore {
     patch: UpdateChatRoom,
   ): ChatRoom | undefined;
   deleteChatRoom(chatRoomId: string): boolean;
-  listMessages(chatRoomId: string, input: PageInput): Page<Message>;
+  listMessages(chatRoomId: string, input: MessagePageInput): Page<Message>;
   getMessages(chatRoomId: string): Message[];
   getMessage(messageId: string): Message | undefined;
   getRun(runId: string): Run | undefined;

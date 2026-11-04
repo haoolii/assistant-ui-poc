@@ -26,6 +26,10 @@ export class ChatRoomPageQuery {
 
 export class MessagePageQuery {
   @IsOptional()
+  @IsIn(['asc', 'desc'])
+  order: 'asc' | 'desc' = 'asc';
+
+  @IsOptional()
   @IsString()
   cursor?: string;
 

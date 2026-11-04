@@ -4,6 +4,7 @@ import {
   InvalidCursorError,
   type ChatStore,
   type PageInput,
+  type MessagePageInput,
 } from './chat-store';
 import type {
   ChatRoom,
@@ -21,11 +22,13 @@ export class InMemoryChatStore implements ChatStore {
   private readonly messages = new Map<string, Message>();
   private readonly runs = new Map<string, Run>();
   private readonly issuedCursors = new Set<string>();
+  private readonly roomNamespace = randomUUID();
+  private nextRoomId = 0n;
 
   createChatRoom(): ChatRoom {
     const now = new Date().toISOString();
     const room: ChatRoom = {
-      id: `room_${randomUUID()}`,
+      id: `room_${this.roomNamespace}_${++this.nextRoomId}`,
       title: null,
       status: 'regular',
       createdAt: now,
@@ -83,13 +86,15 @@ export class InMemoryChatStore implements ChatStore {
     return true;
   }
 
-  listMessages(chatRoomId: string, input: PageInput): Page<Message> {
+  listMessages(chatRoomId: string, input: MessagePageInput): Page<Message> {
+    const descending = input.order === 'desc';
+    const messages = this.getMessages(chatRoomId);
     return this.page(
-      this.getMessages(chatRoomId),
+      descending ? messages.reverse() : messages,
       input,
-      `messages:${chatRoomId}`,
+      descending ? `messages:${chatRoomId}:desc` : `messages:${chatRoomId}`,
       'createdAt',
-      'ascending',
+      descending ? 'descending' : 'ascending',
     );
   }
 

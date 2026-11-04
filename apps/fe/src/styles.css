@@ -1,3 +1,15 @@
+@layer theme, base, components, utilities;
+@import 'tailwindcss/theme.css' layer(theme);
+@import 'tailwindcss/utilities.css' layer(utilities);
+
+@theme {
+  --color-background: #ffffff;
+  --color-foreground: #171717;
+  --color-muted: #f5f5f5;
+  --color-muted-foreground: #737373;
+  --color-primary: #171717;
+}
+
 html {
   min-height: 100%;
 }

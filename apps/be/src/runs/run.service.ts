@@ -10,6 +10,7 @@ import {
   Inject,
   Injectable,
   NotFoundException,
+  ServiceUnavailableException,
 } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { randomUUID } from 'node:crypto';
@@ -37,10 +38,21 @@ type ClientConversationMessage = Extract<
 >;
 
 const DEVELOPER_INSTRUCTION = 'You are the assistant for this application.';
+const MAX_TOMBSTONES = 1000;
 
 @Injectable()
 export class RunService {
   private readonly model: string;
+  private readonly tombstones = new Map<string, string>();
+  private readonly active = new Map<
+    string,
+    {
+      run: Run;
+      controller: AbortController;
+      done: Promise<void>;
+      finish: () => void;
+    }
+  >();
 
   constructor(
     @Inject(CHAT_STORE) private readonly store: ChatStore,
@@ -50,11 +62,103 @@ export class RunService {
     this.model = config.getOrThrow<string>('MOCK_LLM_MODEL');
   }
 
+  getRun(id: string): Run {
+    const run = this.store.getRun(id);
+    if (!run) throw new NotFoundException(`Run ${id} does not exist.`);
+    return run;
+  }
+
+  async cancelRun(
+    id: string,
+    threadId: string,
+  ): Promise<{
+    id: string;
+    chatRoomId: string;
+    status: Run['status'];
+    started: boolean;
+  }> {
+    this.reclaimDeletedRoomTombstones();
+    if (!this.store.getChatRoom(threadId))
+      throw new NotFoundException(`Chat room ${threadId} does not exist.`);
+    const tombstone = this.tombstones.get(id);
+    const run = this.store.getRun(id);
+    const executing = this.active.get(id);
+    if (
+      (tombstone && tombstone !== threadId) ||
+      (run && run.chatRoomId !== threadId) ||
+      (executing && executing.run.chatRoomId !== threadId)
+    )
+      throw new ConflictException(`Run ${id} belongs to another chat room.`);
+    if (!run) {
+      if (executing)
+        throw new ServiceUnavailableException(
+          'Run is still settling. Retry cancellation.',
+        );
+      if (!tombstone && this.tombstones.size >= MAX_TOMBSTONES)
+        throw new ServiceUnavailableException(
+          'Cancellation capacity exhausted.',
+        );
+      this.tombstones.set(id, threadId);
+      return { id, chatRoomId: threadId, status: 'cancelled', started: false };
+    }
+    if (run.status === 'in_progress') {
+      const active = this.active.get(id);
+      if (!active)
+        throw new ServiceUnavailableException(
+          'Run settlement is unavailable. Retry cancellation.',
+        );
+      active.controller.abort();
+      let timer: ReturnType<typeof setTimeout> | undefined;
+      const settled = await Promise.race([
+        active.done.then(() => true),
+        new Promise<false>((resolve) => {
+          timer = setTimeout(() => resolve(false), 10000);
+        }),
+      ]);
+      clearTimeout(timer);
+      if (!settled)
+        throw new ServiceUnavailableException(
+          'Run is still settling. Retry cancellation.',
+        );
+    }
+    const settledRun = this.store.getRun(id);
+    if (!settledRun || settledRun.status === 'in_progress')
+      throw new ServiceUnavailableException(
+        'Run settlement is unavailable. Retry cancellation.',
+      );
+    return {
+      id,
+      chatRoomId: threadId,
+      status: settledRun.status,
+      started: true,
+    };
+  }
+
+  runSignal(prepared: PreparedRun): AbortSignal {
+    const active = this.active.get(prepared.run.id);
+    if (!active || active.run !== prepared.run)
+      throw new Error('Run execution no longer owns its ID.');
+    return active.controller.signal;
+  }
+
+  finishPrepared(prepared: PreparedRun): void {
+    const active = this.active.get(prepared.run.id);
+    if (active && active.run === prepared.run) {
+      this.active.delete(prepared.run.id);
+      active.finish();
+    }
+  }
+
   prepare(dto: RunAgentInputDto): PreparedRun {
+    this.reclaimDeletedRoomTombstones();
     if (!this.store.getChatRoom(dto.threadId)) {
       throw new NotFoundException(`Chat room ${dto.threadId} does not exist.`);
     }
-    if (this.store.getRun(dto.runId)) {
+    if (
+      this.store.getRun(dto.runId) ||
+      this.tombstones.has(dto.runId) ||
+      this.active.has(dto.runId)
+    ) {
       throw new ConflictException(`Run ${dto.runId} already exists.`);
     }
 
@@ -194,6 +298,16 @@ export class RunService {
       }
       throw new ConflictException(`Run ${dto.runId} already exists.`);
     }
+    let finish!: () => void;
+    const done = new Promise<void>((resolve) => {
+      finish = resolve;
+    });
+    this.active.set(run.id, {
+      run,
+      controller: new AbortController(),
+      done,
+      finish,
+    });
 
     const input: RunAgentInput = {
       threadId: dto.threadId,
@@ -208,6 +322,12 @@ export class RunService {
       resume: dto.resume as RunAgentInput['resume'],
     };
     return { input, run, assistant, context };
+  }
+
+  private reclaimDeletedRoomTombstones(): void {
+    for (const [id, roomId] of this.tombstones) {
+      if (!this.store.getChatRoom(roomId)) this.tombstones.delete(id);
+    }
   }
 
   async stream(
@@ -249,6 +369,10 @@ export class RunService {
         { messages: context, model: run.model },
         providerSignal,
       )) {
+        if (!this.owns(run)) {
+          providerAbort.abort();
+          return;
+        }
         if (!this.store.getChatRoom(run.chatRoomId)) {
           providerAbort.abort();
           this.send(response, {
@@ -289,8 +413,16 @@ export class RunService {
         }
       }
 
+      if (!this.owns(run)) return;
       if (signal.aborted) {
         this.cancel(run, assistant, output, providerMessageId);
+        this.send(response, {
+          type: EventType.RUN_FINISHED,
+          threadId: run.chatRoomId,
+          runId: run.id,
+          outcome: { type: 'cancelled' },
+        });
+        if (!response.destroyed) response.end();
         return;
       }
       if (!this.store.getChatRoom(run.chatRoomId)) {
@@ -325,8 +457,16 @@ export class RunService {
       });
       response.end();
     } catch (error) {
+      if (!this.owns(run)) return;
       if (signal.aborted) {
         this.cancel(run, assistant, output, providerMessageId);
+        this.send(response, {
+          type: EventType.RUN_FINISHED,
+          threadId: run.chatRoomId,
+          runId: run.id,
+          outcome: { type: 'cancelled' },
+        });
+        if (!response.destroyed) response.end();
         return;
       }
 
@@ -370,6 +510,7 @@ export class RunService {
     output: string,
     providerMessageId: string | null,
   ): void {
+    if (!this.owns(run)) return;
     this.store.upsertMessage({
       ...assistant,
       content: output ? [{ type: 'text', text: output }] : [],
@@ -384,7 +525,22 @@ export class RunService {
   }
 
   cancelPrepared(prepared: PreparedRun): void {
-    this.cancel(prepared.run, prepared.assistant, '', null);
+    if (this.store.getRun(prepared.run.id)?.status !== 'in_progress') return;
+    const message =
+      this.store.getMessage(prepared.assistant.id) ?? prepared.assistant;
+    this.cancel(
+      prepared.run,
+      message,
+      this.text(message),
+      message.providerMessageId,
+    );
+  }
+
+  private owns(run: Run): boolean {
+    return (
+      this.active.get(run.id)?.run === run &&
+      this.store.getRun(run.id)?.chatRoomId === run.chatRoomId
+    );
   }
 
   private send(response: Response, event: AGUIEvent): void {
