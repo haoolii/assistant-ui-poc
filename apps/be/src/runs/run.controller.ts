@@ -13,11 +13,23 @@ export class RunController {
     @Req() request: Request,
     @Res() response: Response,
   ): Promise<void> {
-    const prepared = this.runService.prepare(body);
     const abortController = new AbortController();
+    request.once('aborted', () => abortController.abort());
     response.on('close', () => {
       if (!response.writableEnded) abortController.abort();
     });
+    if (request.aborted || response.destroyed) abortController.abort();
+    if (abortController.signal.aborted) {
+      if (!response.destroyed) response.end();
+      return;
+    }
+
+    const prepared = this.runService.prepare(body);
+    if (abortController.signal.aborted || response.destroyed) {
+      this.runService.cancelPrepared(prepared);
+      if (!response.destroyed) response.end();
+      return;
+    }
 
     response.status(200);
     response.set({

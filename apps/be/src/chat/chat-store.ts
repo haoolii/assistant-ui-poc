@@ -14,6 +14,8 @@ export interface PageInput {
   limit: number;
 }
 
+export class InvalidCursorError extends Error {}
+
 export interface ChatStore {
   createChatRoom(): ChatRoom;
   listChatRooms(input: PageInput): Page<ChatRoom>;
@@ -25,7 +27,9 @@ export interface ChatStore {
   deleteChatRoom(chatRoomId: string): boolean;
   listMessages(chatRoomId: string, input: PageInput): Page<Message>;
   getMessages(chatRoomId: string): Message[];
-  upsertMessage(message: Message): Message;
-  createRun(run: Run): Run;
+  getMessage(messageId: string): Message | undefined;
+  getRun(runId: string): Run | undefined;
+  startRun(run: Run, messages: Message[]): boolean;
+  upsertMessage(message: Message): Message | undefined;
   updateRun(runId: string, patch: UpdateRun): Run | undefined;
 }

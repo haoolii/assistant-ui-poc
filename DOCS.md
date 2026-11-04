@@ -67,6 +67,7 @@ Suggested local ports:
 - Validate requests with the NestJS global `ValidationPipe`.
 - Return REST errors as RFC 9457 `application/problem+json` responses.
 - Use cursor pagination for list endpoints.
+- Cursors are opaque, endpoint-specific sort tuples. Malformed, fabricated, or cross-endpoint cursors return `400` rather than restarting at the first page.
 - Serialize dates as ISO 8601 UTC strings.
 - Use UUID or ULID identifiers.
 - Return `204 No Content` after a successful deletion.
@@ -176,6 +177,7 @@ The BE must not blindly proxy that array to MockLLM. For each run it must:
 
 1. Confirm that `threadId` identifies an existing room.
 2. Upsert incoming messages by `message.id`, so resending the complete AG-UI history does not create duplicates.
+   Client user messages may only be upserted within their owning room. Assistant messages are server-owned: clients may echo an existing canonical assistant message unchanged, but cannot fabricate or rewrite one.
 3. Read the canonical ordered history from `InMemoryChatStore`.
 4. Include completed `user` and `assistant` messages plus the latest user message.
 5. Exclude failed or incomplete assistant messages from model context.
@@ -409,6 +411,7 @@ The BE currently implements the complete Phase 6 API:
 - A singleton `InMemoryChatStore` with process-local `Map` collections for chat rooms, messages, and runs.
 - AG-UI `RunAgentInput` handling and official `@ag-ui/core` event types over HTTP + SSE.
 - Canonical history reconciliation by message ID, server-owned developer instructions, and completed text-turn filtering for provider context.
+- Atomic pre-stream validation that rejects cross-room message IDs, fabricated or modified assistant turns, duplicate run IDs, invalid cursors, and empty text without partially mutating history.
 - Persisted run and assistant-message lifecycle state, provider message IDs, room activity timestamps, upstream cancellation on client disconnect, and terminal `RUN_FINISHED` or `RUN_ERROR` events.
 - RFC 9457 HTTP errors before streaming begins, including missing-room and malformed-input responses.
 

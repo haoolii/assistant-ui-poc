@@ -4,7 +4,12 @@ import {
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
-import { CHAT_STORE, type ChatStore, type PageInput } from './chat-store';
+import {
+  CHAT_STORE,
+  InvalidCursorError,
+  type ChatStore,
+  type PageInput,
+} from './chat-store';
 import type { ChatRoom, Message, UpdateChatRoom } from './chat.models';
 
 @Injectable()
@@ -16,7 +21,7 @@ export class ChatService {
   }
 
   listRooms(input: PageInput) {
-    const page = this.store.listChatRooms(input);
+    const page = this.getPage(() => this.store.listChatRooms(input));
     return { chatRooms: page.items, nextCursor: page.nextCursor };
   }
 
@@ -48,11 +53,22 @@ export class ChatService {
     nextCursor: string | null;
   } {
     this.getRoom(chatRoomId);
-    const page = this.store.listMessages(chatRoomId, input);
+    const page = this.getPage(() => this.store.listMessages(chatRoomId, input));
     return { messages: page.items, nextCursor: page.nextCursor };
   }
 
   private notFound(chatRoomId: string): NotFoundException {
     return new NotFoundException(`Chat room ${chatRoomId} does not exist.`);
+  }
+
+  private getPage<T>(load: () => T): T {
+    try {
+      return load();
+    } catch (error) {
+      if (error instanceof InvalidCursorError) {
+        throw new BadRequestException('The pagination cursor is invalid.');
+      }
+      throw error;
+    }
   }
 }

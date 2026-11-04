@@ -1,6 +1,10 @@
 import { Injectable } from '@nestjs/common';
 import { randomUUID } from 'node:crypto';
-import type { ChatStore, PageInput } from './chat-store';
+import {
+  InvalidCursorError,
+  type ChatStore,
+  type PageInput,
+} from './chat-store';
 import type {
   ChatRoom,
   Message,
@@ -15,6 +19,7 @@ export class InMemoryChatStore implements ChatStore {
   private readonly chatRooms = new Map<string, ChatRoom>();
   private readonly messages = new Map<string, Message>();
   private readonly runs = new Map<string, Run>();
+  private readonly issuedCursors = new Set<string>();
 
   createChatRoom(): ChatRoom {
     const now = new Date().toISOString();
@@ -35,7 +40,7 @@ export class InMemoryChatStore implements ChatStore {
         right.updatedAt.localeCompare(left.updatedAt) ||
         right.id.localeCompare(left.id),
     );
-    return this.page(rooms, input);
+    return this.page(rooms, input, 'chat-rooms', 'updatedAt', 'descending');
   }
 
   getChatRoom(chatRoomId: string): ChatRoom | undefined {
@@ -71,7 +76,13 @@ export class InMemoryChatStore implements ChatStore {
   }
 
   listMessages(chatRoomId: string, input: PageInput): Page<Message> {
-    return this.page(this.getMessages(chatRoomId), input);
+    return this.page(
+      this.getMessages(chatRoomId),
+      input,
+      `messages:${chatRoomId}`,
+      'createdAt',
+      'ascending',
+    );
   }
 
   getMessages(chatRoomId: string): Message[] {
@@ -84,8 +95,49 @@ export class InMemoryChatStore implements ChatStore {
       );
   }
 
-  upsertMessage(message: Message): Message {
+  getMessage(messageId: string): Message | undefined {
+    return this.messages.get(messageId);
+  }
+
+  getRun(runId: string): Run | undefined {
+    return this.runs.get(runId);
+  }
+
+  startRun(run: Run, messages: Message[]): boolean {
+    if (this.runs.has(run.id) || !this.chatRooms.has(run.chatRoomId)) {
+      return false;
+    }
+    if (
+      messages.some((message) => {
+        const current = this.messages.get(message.id);
+        return (
+          message.chatRoomId !== run.chatRoomId ||
+          (current !== undefined &&
+            (current.chatRoomId !== run.chatRoomId ||
+              current.role !== 'user' ||
+              message.role !== 'user'))
+        );
+      })
+    ) {
+      return false;
+    }
+
+    this.runs.set(run.id, run);
+    for (const message of messages) {
+      const current = this.messages.get(message.id);
+      this.messages.set(message.id, {
+        ...message,
+        createdAt: current?.createdAt ?? message.createdAt,
+      });
+    }
+    this.touchRoom(run.chatRoomId);
+    return true;
+  }
+
+  upsertMessage(message: Message): Message | undefined {
+    if (!this.chatRooms.has(message.chatRoomId)) return undefined;
     const current = this.messages.get(message.id);
+    if (current && current.chatRoomId !== message.chatRoomId) return undefined;
     const stored = current
       ? {
           ...message,
@@ -97,14 +149,9 @@ export class InMemoryChatStore implements ChatStore {
     return stored;
   }
 
-  createRun(run: Run): Run {
-    this.runs.set(run.id, run);
-    return run;
-  }
-
   updateRun(runId: string, patch: UpdateRun): Run | undefined {
     const current = this.runs.get(runId);
-    if (!current) return undefined;
+    if (!current || !this.chatRooms.has(current.chatRoomId)) return undefined;
     const updated = { ...current, ...patch };
     this.runs.set(runId, updated);
     return updated;
@@ -120,19 +167,67 @@ export class InMemoryChatStore implements ChatStore {
     }
   }
 
-  private page<T extends { id: string }>(
+  private page<T extends { id: string } & Record<K, string>, K extends string>(
     items: T[],
     input: PageInput,
+    kind: string,
+    timestampKey: K,
+    direction: 'ascending' | 'descending',
   ): Page<T> {
-    const cursorIndex = input.cursor
-      ? items.findIndex((item) => item.id === input.cursor)
-      : -1;
-    const start = cursorIndex >= 0 ? cursorIndex + 1 : 0;
-    const page = items.slice(start, start + input.limit);
-    const hasMore = start + page.length < items.length;
+    const cursor = input.cursor
+      ? this.decodeCursor(input.cursor, kind)
+      : undefined;
+    const remaining = cursor
+      ? items.filter((item) => {
+          const comparison = item[timestampKey].localeCompare(cursor.timestamp);
+          return direction === 'ascending'
+            ? comparison > 0 || (comparison === 0 && item.id > cursor.id)
+            : comparison < 0 || (comparison === 0 && item.id < cursor.id);
+        })
+      : items;
+    const page = remaining.slice(0, input.limit);
+    const hasMore = page.length < remaining.length;
+    const last = page.at(-1);
+    const nextCursor =
+      hasMore && last
+        ? this.encodeCursor(kind, last[timestampKey], last.id)
+        : null;
     return {
       items: page,
-      nextCursor: hasMore ? (page.at(-1)?.id ?? null) : null,
+      nextCursor,
     };
+  }
+
+  private encodeCursor(kind: string, timestamp: string, id: string): string {
+    const cursor = Buffer.from(
+      JSON.stringify({ version: 1, kind, timestamp, id }),
+    ).toString('base64url');
+    this.issuedCursors.add(cursor);
+    return cursor;
+  }
+
+  private decodeCursor(
+    cursor: string,
+    kind: string,
+  ): { timestamp: string; id: string } {
+    if (!this.issuedCursors.has(cursor)) throw new InvalidCursorError();
+    try {
+      const value = JSON.parse(
+        Buffer.from(cursor, 'base64url').toString('utf8'),
+      ) as Record<string, unknown>;
+      if (
+        value.version !== 1 ||
+        value.kind !== kind ||
+        typeof value.timestamp !== 'string' ||
+        Number.isNaN(Date.parse(value.timestamp)) ||
+        typeof value.id !== 'string'
+      ) {
+        throw new InvalidCursorError();
+      }
+      return { timestamp: value.timestamp, id: value.id };
+    } catch (error) {
+      if (error instanceof InvalidCursorError) throw error;
+      throw new InvalidCursorError();
+    }
   }
 }
